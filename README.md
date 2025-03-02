@@ -3,6 +3,8 @@
 # MBI
 データの可視化・分析を行うことができるBIツール
 
+![Screenshot from 2025-03-02 23-28-29](https://github.com/user-attachments/assets/dc49ec7f-5c5a-44b6-9b08-3e66e9c2f89c)
+
 
 # Setup
 
