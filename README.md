@@ -23,12 +23,13 @@ npx shadcn@latest add sidebar
 
 
 3. run
+
 **FastAPI**
 ```
 uvicorn main:app --reload
 ```
 
-**Next.js **
+**Next.js**
 ```
 npm run dev
 ```
