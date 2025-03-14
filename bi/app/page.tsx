@@ -1,66 +1,58 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, PieChart, Pie, Cell 
 } from "recharts";
+import { useRouter } from "next/navigation";
+
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
   const [graphType, setGraphType] = useState("line");
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // データをローカルストレージから取得
-  const loadDataFromLocalStorage = () => {
+  useEffect(() => {
     const storedData = localStorage.getItem("uploadedData");
     if (storedData) {
-      setData(JSON.parse(storedData));  // ローカルストレージからデータをセット
-    } else {
-      fetchData();  // ローカルストレージにデータがなければAPIから取得
+      setData(JSON.parse(storedData));
     }
-  };
-
-  // APIからデータを取得する関数
-  const fetchData = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/data");
-      const result = await response.json();
-      setData(result);  // データを更新
-    } catch (error) {
-      console.error("データ取得エラー:", error);
-    }
-  };
-
-  // 初回ロード時にローカルストレージからデータを取得
-  useEffect(() => {
-    loadDataFromLocalStorage();
-  }, []); // 初回マウント時のみ実行
-
-  // グラフタイプの変更
-  useEffect(() => {
-    const handleStorageChange = () => {
-      loadDataFromLocalStorage();  // ローカルストレージのデータを再取得
-    };
-
-    // LocalStorageの変更を監視
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsLoggedIn(false);
+    router.push("/");
+  };
+
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-white text-black">
       {/* サイドバー */}
-      <aside className="w-64 bg-gray-900 text-white min-h-screen p-4">
-        <h2 className="text-xl font-bold mb-4">📊 MBI Dashboard</h2>
+      <aside className="w-64 bg-white border-r border-gray-200 p-4">
+        <h2 className="text-xl font-bold mb-4">MBI Dashboard</h2>
         <nav className="space-y-2">
-          <a href="/" className="block p-2 rounded hover:bg-gray-700">🏠 ホーム</a>
-          <a href="/upload" className="block p-2 rounded hover:bg-gray-700">📂 データアップロード</a>
+          <a href="/" className="block p-2 rounded-lg hover:bg-gray-100">ホーム</a>
+          <a href="/upload" className="block p-2 rounded-lg hover:bg-gray-100">データアップロード</a>
         </nav>
+        <div className="mt-6">
+          {isLoggedIn ? (
+            <button className="w-full bg-black text-white p-2" onClick={handleLogout}>ログアウト</button>
+          ) : (
+            <>
+              <a href="/signin" className="block bg-black text-white text-center p-2 mb-2 rounded">ログイン</a>
+              <a href="/signup" className="block bg-gray-200 text-black text-center p-2 rounded">サインアップ</a>
+            </>
+          )}
+        </div>
       </aside>
 
       {/* メインコンテンツ */}
@@ -70,10 +62,10 @@ export default function Dashboard() {
 
           {/* グラフ選択 */}
           <Select onValueChange={(value) => setGraphType(value)} defaultValue="line">
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 border border-gray-300 bg-white text-black shadow-sm">
               <SelectValue placeholder="グラフ" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border border-gray-300">
               <SelectItem value="line">📈 折れ線</SelectItem>
               <SelectItem value="bar">📊 棒</SelectItem>
               <SelectItem value="pie">🥧 円</SelectItem>
@@ -81,32 +73,33 @@ export default function Dashboard() {
           </Select>
         </div>
 
-        <Card className="shadow-md">
+        {/* カード */}
+        <Card className="shadow-md border border-gray-300 rounded-lg">
           <CardContent className="h-[450px]">
             <ResponsiveContainer width="100%" height="100%">
               {graphType === "line" && (
                 <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="date" stroke="#333" />
+                  <YAxis stroke="#333" />
                   <Tooltip />
-                  <Line type="monotone" dataKey="sales" stroke="#6366F1" />
+                  <Line type="monotone" dataKey="sales" stroke="#000000" />
                 </LineChart>
               )}
               {graphType === "bar" && (
                 <BarChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="date" stroke="#333" />
+                  <YAxis stroke="#333" />
                   <Tooltip />
-                  <Bar dataKey="sales" fill="#10B981" />
+                  <Bar dataKey="sales" fill="#000000" />
                 </BarChart>
               )}
               {graphType === "pie" && (
                 <PieChart>
-                  <Pie data={data} dataKey="sales" nameKey="date" cx="50%" cy="50%" outerRadius={80} fill="#6366F1">
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={["#6366F1", "#10B981", "#FACC15"][index % 3]} />
+                  <Pie data={data} dataKey="sales" nameKey="date" cx="50%" cy="50%" outerRadius={80} fill="#000000">
+                    {data.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill="#000000" />
                     ))}
                   </Pie>
                   <Tooltip />

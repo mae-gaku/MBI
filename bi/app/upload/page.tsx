@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,14 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const router = useRouter();
-
+  
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("⚠️ データをアップロードするにはログインが必要です。");
+      router.push("/signin");
+    }
+  }, [router]);
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
